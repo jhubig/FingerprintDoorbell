@@ -431,9 +431,9 @@ void FingerprintManager::setLedTouchRing(bool state) {
   if (ignoreTouchRing != state) {
     ignoreTouchRing = state;
     if (state == true)
-      notifyClients("IgnoreTouchRing is now 'on'");
+      notifyClients("LedTouchRing is now 'on'");
     else
-      notifyClients("IgnoreTouchRing is now 'off'");
+      notifyClients("LedTouchRing is now 'off'");
   }
 }
 
