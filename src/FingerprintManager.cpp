@@ -427,6 +427,16 @@ void FingerprintManager::setIgnoreTouchRing(bool state) {
   }
 }
 
+void FingerprintManager::setLedTouchRing(bool state) {
+  if (ignoreTouchRing != state) {
+    ignoreTouchRing = state;
+    if (state == true)
+      notifyClients("IgnoreTouchRing is now 'on'");
+    else
+      notifyClients("IgnoreTouchRing is now 'off'");
+  }
+}
+
 
 bool FingerprintManager::isRingTouched() {
   if (digitalRead(touchRingPin) == LOW) // LOW = touched. Caution: touchSignal on this pin occour only once (at beginning of touching the ring, not every iteration if you keep your finger on the ring)
@@ -456,8 +466,10 @@ void FingerprintManager::setLedRingWifiConfig() {
 }
 
 void FingerprintManager::setLedRingReady() {
-  if (!ignoreTouchRing)
+  if (!ignoreTouchRing && LedTouchRing)
     finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, FINGERPRINT_LED_BLUE);
+  else if (!ignoreTouchRing && !LedTouchRing)
+    finger.LEDcontrol(FINGERPRINT_LED_OFF, 0, FINGERPRINT_LED_BLUE); // Indicator switched off
   else
     finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_BLUE); // just an indicator for me to see if touch ring is active or not
 }

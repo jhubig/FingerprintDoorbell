@@ -15,7 +15,7 @@
 
 enum class Mode { scan, enroll, wificonfig, maintenance };
 
-const char* VersionInfo = "0.4";
+const char* VersionInfo = "0.5b_Johannes";
 
 // ===================================================================================================================
 // Caution: below are not the credentials for connecting to your home network, they are for the Access Point mode!!!
@@ -468,6 +468,15 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
       fingerManager.setIgnoreTouchRing(false);
     }
   }
+  // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRing") {
+    if(messageTemp == "on"){
+      fingerManager.setLedTouchRing(true);
+    }
+    else if(messageTemp == "off"){
+      fingerManager.setLedTouchRing(false);
+    }
+  }
 
   #ifdef CUSTOM_GPIOS
     if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/customOutput1") {
@@ -509,6 +518,7 @@ void connectMqttClient() {
       Serial.println("connected");
       // Subscribe
       mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/ignoreTouchRing").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRing").c_str(), 1); // QoS = 1 (at least once)
       #ifdef CUSTOM_GPIOS
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput1").c_str(), 1); // QoS = 1 (at least once)
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput2").c_str(), 1); // QoS = 1 (at least once)
