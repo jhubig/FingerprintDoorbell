@@ -15,7 +15,7 @@
 
 enum class Mode { scan, enroll, wificonfig, maintenance };
 
-const char* VersionInfo = "0.5b_Johannes";
+const char* VersionInfo = "0.51b_Johannes";
 
 // ===================================================================================================================
 // Caution: below are not the credentials for connecting to your home network, they are for the Access Point mode!!!
@@ -469,13 +469,66 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
     }
   }
   // Check incomming message for interesting topics
-  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRing") {
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingActive") {
     if(messageTemp == "on"){
-      fingerManager.setLedTouchRing(true);
+      fingerManager.setLedTouchRingActive(true);
     }
     else if(messageTemp == "off"){
-      fingerManager.setLedTouchRing(false);
+      fingerManager.setLedTouchRingActive(false);
     }
+    fingerManager.setLedRingReady();
+  }
+
+   // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingActiveColor") {
+    if(messageTemp == "red"){
+      fingerManager.setLedTouchRingActiveColor(1);
+    }
+    else if(messageTemp == "blue"){
+      fingerManager.setLedTouchRingActiveColor(2);
+    }
+    else if(messageTemp == "purple"){
+      fingerManager.setLedTouchRingActiveColor(3);
+    }
+    else if(messageTemp == "green"){
+      fingerManager.setLedTouchRingActiveColor(4);
+    }
+    else if(messageTemp == "yellow"){
+      fingerManager.setLedTouchRingActiveColor(5);
+    }
+    else if(messageTemp == "cyan"){
+      fingerManager.setLedTouchRingActiveColor(6);
+    }
+    else if(messageTemp == "white"){
+      fingerManager.setLedTouchRingActiveColor(7);
+    }
+    fingerManager.setLedRingReady();
+  }
+
+     // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingFingerprintDetectedColor") {
+    if(messageTemp == "red"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(1);
+    }
+    else if(messageTemp == "blue"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(2);
+    }
+    else if(messageTemp == "purple"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(3);
+    }
+    else if(messageTemp == "green"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(4);
+    }
+    else if(messageTemp == "yellow"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(5);
+    }
+    else if(messageTemp == "cyan"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(6);
+    }
+    else if(messageTemp == "white"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(7);
+    }
+    fingerManager.setLedRingReady();
   }
 
   #ifdef CUSTOM_GPIOS
@@ -518,7 +571,9 @@ void connectMqttClient() {
       Serial.println("connected");
       // Subscribe
       mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/ignoreTouchRing").c_str(), 1); // QoS = 1 (at least once)
-      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRing").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingActive").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingActiveColor").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingFingerprintDetectedColor").c_str(), 1); // QoS = 1 (at least once)
       #ifdef CUSTOM_GPIOS
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput1").c_str(), 1); // QoS = 1 (at least once)
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput2").c_str(), 1); // QoS = 1 (at least once)

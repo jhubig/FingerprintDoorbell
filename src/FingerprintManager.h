@@ -41,7 +41,9 @@ class FingerprintManager {
     int fingerCountOnSensor = 0;
     bool ignoreTouchRing = false; // set to true when the sensor is usually exposed to rain to avoid false ring events. Can also be set conditional by a rain sensor over MQTT
     bool lastIgnoreTouchRing = false;
-    bool LedTouchRing = false;
+    bool LedTouchRingActive = true;
+    uint8_t LedTouchRingActiveColor = 2; //Default color is blue
+    uint8_t LedTouchRingFingerprintDetectedColor = 3; //Default color is purple
     
     void updateTouchState(bool touched);
     bool isRingTouched();
@@ -61,7 +63,9 @@ class FingerprintManager {
     void renameFinger(int id, String newName);
     String getFingerListAsHtmlOptionList();
     void setIgnoreTouchRing(bool state);
-    void setLedTouchRing(bool state);
+    void setLedTouchRingActive(bool state);
+    void setLedTouchRingActiveColor(int color);
+    void setLedTouchRingFingerprintDetectedColor(int color);
     bool isFingerOnSensor();
     void setLedRingError();
     void setLedRingWifiConfig();
