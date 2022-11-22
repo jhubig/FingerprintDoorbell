@@ -15,7 +15,7 @@
 
 enum class Mode { scan, enroll, wificonfig, maintenance };
 
-const char* VersionInfo = "0.4";
+const char* VersionInfo = "0.54_Markus";
 
 // ===================================================================================================================
 // Caution: below are not the credentials for connecting to your home network, they are for the Access Point mode!!!
@@ -50,6 +50,7 @@ Mode currentMode = Mode::scan;
 FingerprintManager fingerManager;
 SettingsManager settingsManager;
 bool needMaintenanceMode = false;
+bool RingOff = false;
 
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
@@ -463,10 +464,85 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
   if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/ignoreTouchRing") {
     if(messageTemp == "on"){
       fingerManager.setIgnoreTouchRing(true);
+      RingOff = true;
     }
     else if(messageTemp == "off"){
       fingerManager.setIgnoreTouchRing(false);
+      RingOff = false;
     }
+  }
+  // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingActive") {
+    if(messageTemp == "on"){
+      fingerManager.setLedTouchRingActive(true);
+    }
+    else if(messageTemp == "off"){
+      fingerManager.setLedTouchRingActive(false);
+    }
+    fingerManager.setLedRingReady();
+  }
+
+   // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingActiveColor") {
+    if(messageTemp == "red"){
+      fingerManager.setLedTouchRingActiveColor(1);
+    }
+    else if(messageTemp == "blue"){
+      fingerManager.setLedTouchRingActiveColor(2);
+    }
+    else if(messageTemp == "purple"){
+      fingerManager.setLedTouchRingActiveColor(3);
+    }
+    else if(messageTemp == "green"){
+      fingerManager.setLedTouchRingActiveColor(4);
+    }
+    else if(messageTemp == "yellow"){
+      fingerManager.setLedTouchRingActiveColor(5);
+    }
+    else if(messageTemp == "cyan"){
+      fingerManager.setLedTouchRingActiveColor(6);
+    }
+    else if(messageTemp == "white"){
+      fingerManager.setLedTouchRingActiveColor(7);
+    }
+    fingerManager.setLedRingReady();
+  }
+
+     // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingFingerprintDetectedColor") {
+    if(messageTemp == "red"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(1);
+    }
+    else if(messageTemp == "blue"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(2);
+    }
+    else if(messageTemp == "purple"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(3);
+    }
+    else if(messageTemp == "green"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(4);
+    }
+    else if(messageTemp == "yellow"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(5);
+    }
+    else if(messageTemp == "cyan"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(6);
+    }
+    else if(messageTemp == "white"){
+      fingerManager.setLedTouchRingFingerprintDetectedColor(7);
+    }
+    fingerManager.setLedRingReady();
+  }
+
+    // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingSequence") {
+    if(messageTemp == "breathing"){
+      fingerManager.configTouchRingSequence(1);
+    }
+    else if(messageTemp == "on"){
+      fingerManager.configTouchRingSequence(3);
+    }
+    fingerManager.setLedRingReady();
   }
 
   #ifdef CUSTOM_GPIOS
@@ -509,6 +585,10 @@ void connectMqttClient() {
       Serial.println("connected");
       // Subscribe
       mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/ignoreTouchRing").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingActive").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingActiveColor").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingFingerprintDetectedColor").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingSequence").c_str(), 1); // QoS = 1 (at least once)
       #ifdef CUSTOM_GPIOS
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput1").c_str(), 1); // QoS = 1 (at least once)
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput2").c_str(), 1); // QoS = 1 (at least once)
@@ -561,7 +641,7 @@ void doScan()
       break;
     case ScanResult::noMatchFound:
       notifyClients(String("No Match Found (Code ") + match.returnCode + ")");
-      if (match.scanResult != lastMatch.scanResult) {
+      if (match.scanResult != lastMatch.scanResult && !RingOff)  {
         digitalWrite(doorbellOutputPin, HIGH);
         mqttClient.publish((String(mqttRootTopic) + "/ring").c_str(), "on");
         mqttClient.publish((String(mqttRootTopic) + "/matchId").c_str(), "-1");
@@ -770,4 +850,3 @@ void loop()
   #endif  
 
 }
-

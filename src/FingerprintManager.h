@@ -39,9 +39,13 @@ class FingerprintManager {
     bool lastTouchState = false;
     String fingerList[201];
     int fingerCountOnSensor = 0;
-    bool ignoreTouchRing = false; // set to true when the sensor is usually exposed to rain to avoid false ring events. Can also be set conditional by a rain sensor over MQTT
+    bool ignoreTouchRing = false; //set to true when the sensor is usually exposed to rain to avoid false ring events. Can also be set conditional by a rain sensor over MQTT
     bool lastIgnoreTouchRing = false;
-    
+    bool LedTouchRingActive = true; //LED Ring is on after reboot
+    uint8_t LedTouchRingActiveColor = 7; //Default color is white after reboot
+    uint8_t LedTouchRingFingerprintDetectedColor = 4; //Default color is green after reboot
+    uint8_t touchRingSequence = 3; //Default Sequence is 3 Allways On set to 1 for Breathing LED
+
     void updateTouchState(bool touched);
     bool isRingTouched();
     void loadFingerListFromPrefs();
@@ -60,12 +64,16 @@ class FingerprintManager {
     void renameFinger(int id, String newName);
     String getFingerListAsHtmlOptionList();
     void setIgnoreTouchRing(bool state);
+    void setLedTouchRingActive(bool state);
+    void setLedTouchRingActiveColor(int color);
+    void setLedTouchRingFingerprintDetectedColor(int color);
     bool isFingerOnSensor();
     void setLedRingError();
     void setLedRingWifiConfig();
     void setLedRingReady();
     String getPairingCode();
     bool setPairingCode(String pairingCode);
+    void configTouchRingSequence(uint8_t sequence);
     
     bool deleteAll();
 

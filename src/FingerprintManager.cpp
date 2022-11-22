@@ -54,7 +54,8 @@ void FingerprintManager::updateTouchState(bool touched)
       // check if sensor or ring is touched
       if (touched) {
         // turn touch indicator on:
-        finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_RED, 0);
+        // finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_RED, 0);
+        finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_PURPLE, 0);
       } else {
         // turn touch indicator off:
         setLedRingReady();
@@ -78,8 +79,7 @@ Match FingerprintManager::scanFingerprint() {
 
   // finger detection by capacitive touchRing state (increased sensitivy but error prone due to rain)
   bool ringTouched = false;
-  if (!ignoreTouchRing)
-  {
+  if (!ignoreTouchRing)  {
     if (isRingTouched())
       ringTouched = true;
     if (ringTouched || lastTouchState) { 
@@ -90,7 +90,6 @@ Match FingerprintManager::scanFingerprint() {
         match.scanResult = ScanResult::noFinger;
         return match;
     }
-
   }
   
 
@@ -114,7 +113,7 @@ Match FingerprintManager::scanFingerprint() {
       match.returnCode = finger.getImage();
       switch (match.returnCode) {
         case FINGERPRINT_OK:
-          // Important: do net set touch state to true yet! Reason:
+          // Important: do not set touch state to true yet! Reason:
           // - if touchRing is NOT ignored, updateTouchState(true) was already called a few lines up, ring is already flashing red
           // - if touchRing IS ignored, wait for next step because image still can be "too messy" (=raindrop on sensor), and we don't want to flash red in this case
           //updateTouchState(true);
@@ -189,7 +188,7 @@ Match FingerprintManager::scanFingerprint() {
     match.returnCode = finger.fingerSearch();
     if (match.returnCode == FINGERPRINT_OK) {
         // found a match!
-        finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_PURPLE);
+        finger.LEDcontrol(FINGERPRINT_LED_ON, 0, LedTouchRingFingerprintDetectedColor);
         
         match.scanResult = ScanResult::matchFound;
         match.matchId = finger.fingerID;
@@ -212,9 +211,7 @@ Match FingerprintManager::scanFingerprint() {
   } //while
 
   return match;
-
 }
-
 
 
 // Preferences
@@ -265,7 +262,7 @@ NewFinger FingerprintManager::enrollFinger(int id, String name) {
       }
       
       Serial.print("Taking image sample "); Serial.print(nTimes); Serial.print(": ");
-      finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_PURPLE, 0);
+      finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, LedTouchRingFingerprintDetectedColor, 0);
       newFinger.returnCode = 0xFF;
       while (newFinger.returnCode != FINGERPRINT_OK) {
         newFinger.returnCode = finger.getImage();
@@ -310,7 +307,7 @@ NewFinger FingerprintManager::enrollFinger(int id, String name) {
           Serial.print("Unknown error");
           return newFinger;
       }
-      finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_PURPLE);
+      finger.LEDcontrol(FINGERPRINT_LED_ON, 0, LedTouchRingFingerprintDetectedColor);
 
   }
 
@@ -427,6 +424,62 @@ void FingerprintManager::setIgnoreTouchRing(bool state) {
   }
 }
 
+void FingerprintManager::setLedTouchRingActive(bool state) {
+  if (LedTouchRingActive != state) {
+    LedTouchRingActive = state;
+    if (state == true)
+      notifyClients("LedTouchRingActive is now 'on'");
+    else
+      notifyClients("LedTouchRingActive is now 'off'");
+  }
+}
+
+void FingerprintManager::setLedTouchRingActiveColor(int color) {
+
+    LedTouchRingActiveColor = color;
+    if (color == 1)
+      notifyClients("LedTouchRingActiveColor is now 'red'");
+    else if (color == 2)
+      notifyClients("LedTouchRingActiveColor is now 'blue'");
+    else if (color == 3)
+      notifyClients("LedTouchRingActiveColor is now 'purple'");
+    else if (color == 4)
+      notifyClients("LedTouchRingActiveColor is now 'green'");
+    else if (color == 5)
+      notifyClients("LedTouchRingActiveColor is now 'yellow'");
+    else if (color == 6)
+      notifyClients("LedTouchRingActiveColor is now 'cyan'");
+    else if (color == 7)
+      notifyClients("LedTouchRingActiveColor is now 'white'");
+}
+
+void FingerprintManager::setLedTouchRingFingerprintDetectedColor(int color) {
+
+    LedTouchRingFingerprintDetectedColor = color;
+    if (color == 1)
+      notifyClients("LedTouchRingFingerprintDetectedColor is now 'red'");
+    else if (color == 2)
+      notifyClients("LedTouchRingFingerprintDetectedColor is now 'blue'");
+    else if (color == 3)
+      notifyClients("LedTouchRingFingerprintDetectedColor is now 'purple'");
+    else if (color == 4)
+      notifyClients("LedTouchRingFingerprintDetectedColor is now 'green'");
+    else if (color == 5)
+      notifyClients("LedTouchRingFingerprintDetectedColor is now 'yellow'");
+    else if (color == 6)
+      notifyClients("LedTouchRingFingerprintDetectedColor is now 'cyan'");
+    else if (color == 7)
+      notifyClients("LedTouchRingFingerprintDetectedColor is now 'white'");
+}
+
+void FingerprintManager::configTouchRingSequence(uint8_t sequence) {
+  
+  touchRingSequence = sequence;
+  if (sequence == 1)
+    notifyClients("LedTouchRingSequence is now 'Breathing'");
+  else if (sequence == 3)
+    notifyClients("LedTouchRingSequence is now 'Allways On'");
+}
 
 bool FingerprintManager::isRingTouched() {
   if (digitalRead(touchRingPin) == LOW) // LOW = touched. Caution: touchSignal on this pin occour only once (at beginning of touching the ring, not every iteration if you keep your finger on the ring)
@@ -456,10 +509,18 @@ void FingerprintManager::setLedRingWifiConfig() {
 }
 
 void FingerprintManager::setLedRingReady() {
-  if (!ignoreTouchRing)
-    finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, FINGERPRINT_LED_BLUE);
+  if (!ignoreTouchRing && LedTouchRingActive == true && touchRingSequence == 3)
+    // finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, LedTouchRingActiveColor);
+    // finger.LEDcontrol(FINGERPRINT_LED_ON, 0, LedTouchRingActiveColor);
+    finger.LEDcontrol(touchRingSequence, 0, LedTouchRingActiveColor);
+  else if (!ignoreTouchRing && LedTouchRingActive == true && touchRingSequence == 1)
+    finger.LEDcontrol(touchRingSequence, 250, LedTouchRingActiveColor);
+  else if (!ignoreTouchRing && LedTouchRingActive == false)
+    finger.LEDcontrol(FINGERPRINT_LED_OFF, 0, LedTouchRingActiveColor); // Indicator switched off
+  else if (ignoreTouchRing && LedTouchRingActive == false)
+    finger.LEDcontrol(FINGERPRINT_LED_OFF, 0, LedTouchRingActiveColor); // Indicator switched off and TouchRing ignored
   else
-    finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_BLUE); // just an indicator for me to see if touch ring is active or not
+    finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, LedTouchRingActiveColor); // just an indicator for me to see if touch ring is active or not
 }
 
 bool FingerprintManager::deleteAll() {
@@ -557,4 +618,3 @@ void FingerprintManager::exportSensorDB() {
 void FingerprintManager::importSensorDB() {
 
 }
-
