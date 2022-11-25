@@ -15,7 +15,7 @@
 
 enum class Mode { scan, enroll, wificonfig, maintenance };
 
-const char* VersionInfo = "0.51b_Johannes";
+const char* VersionInfo = "0.52b_Johannes";
 
 // ===================================================================================================================
 // Caution: below are not the credentials for connecting to your home network, they are for the Access Point mode!!!
@@ -531,6 +531,17 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
     fingerManager.setLedRingReady();
   }
 
+    // Check incomming message for interesting topics
+  if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/LedTouchRingSequence") {
+    if(messageTemp == "breathing"){
+      fingerManager.configTouchRingSequence(1);
+    }
+    else if(messageTemp == "on"){
+      fingerManager.configTouchRingSequence(3);
+    }
+    fingerManager.setLedRingReady();
+  }
+
   #ifdef CUSTOM_GPIOS
     if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/customOutput1") {
       if(messageTemp == "on"){
@@ -574,6 +585,7 @@ void connectMqttClient() {
       mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingActive").c_str(), 1); // QoS = 1 (at least once)
       mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingActiveColor").c_str(), 1); // QoS = 1 (at least once)
       mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingFingerprintDetectedColor").c_str(), 1); // QoS = 1 (at least once)
+      mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/LedTouchRingSequence").c_str(), 1); // QoS = 1 (at least once)
       #ifdef CUSTOM_GPIOS
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput1").c_str(), 1); // QoS = 1 (at least once)
         mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput2").c_str(), 1); // QoS = 1 (at least once)

@@ -476,6 +476,16 @@ void FingerprintManager::setLedTouchRingFingerprintDetectedColor(int color) {
 }
 
 
+void FingerprintManager::configTouchRingSequence(uint8_t sequence) {
+
+  touchRingSequence = sequence;
+  if (sequence == 1)
+    notifyClients("LedTouchRingSequence is now 'Breathing'");
+  else if (sequence == 3)
+    notifyClients("LedTouchRingSequence is now 'Allways On'");
+}
+
+
 bool FingerprintManager::isRingTouched() {
   if (digitalRead(touchRingPin) == LOW) // LOW = touched. Caution: touchSignal on this pin occour only once (at beginning of touching the ring, not every iteration if you keep your finger on the ring)
       return true;
@@ -504,10 +514,16 @@ void FingerprintManager::setLedRingWifiConfig() {
 }
 
 void FingerprintManager::setLedRingReady() {
-  if (!ignoreTouchRing && LedTouchRingActive == true)
-    finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, LedTouchRingActiveColor);
+  if (!ignoreTouchRing && LedTouchRingActive == true && touchRingSequence == 3)
+    // finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, LedTouchRingActiveColor);
+    // finger.LEDcontrol(FINGERPRINT_LED_ON, 0, LedTouchRingActiveColor);
+    finger.LEDcontrol(touchRingSequence, 0, LedTouchRingActiveColor);
+  else if (!ignoreTouchRing && LedTouchRingActive == true && touchRingSequence == 1)
+    finger.LEDcontrol(touchRingSequence, 250, LedTouchRingActiveColor);
   else if (!ignoreTouchRing && LedTouchRingActive == false)
     finger.LEDcontrol(FINGERPRINT_LED_OFF, 0, LedTouchRingActiveColor); // Indicator switched off
+  else if (ignoreTouchRing && LedTouchRingActive == false)
+    finger.LEDcontrol(FINGERPRINT_LED_OFF, 0, LedTouchRingActiveColor); // Indicator switched off and TouchRing ignored
   else
     finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, LedTouchRingActiveColor); // just an indicator for me to see if touch ring is active or not
 }

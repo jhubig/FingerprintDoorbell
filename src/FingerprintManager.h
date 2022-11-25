@@ -43,7 +43,8 @@ class FingerprintManager {
     bool lastIgnoreTouchRing = false;
     bool LedTouchRingActive = true;
     uint8_t LedTouchRingActiveColor = 2; //Default color is blue
-    uint8_t LedTouchRingFingerprintDetectedColor = 3; //Default color is purple
+    uint8_t LedTouchRingFingerprintDetectedColor = 4; //Default color is green
+    uint8_t touchRingSequence = 3; //Default Sequence is 3 Allways On set to 1 for Breathing LED
     
     void updateTouchState(bool touched);
     bool isRingTouched();
@@ -72,6 +73,7 @@ class FingerprintManager {
     void setLedRingReady();
     String getPairingCode();
     bool setPairingCode(String pairingCode);
+    void configTouchRingSequence(uint8_t sequence);
     
     bool deleteAll();
 
